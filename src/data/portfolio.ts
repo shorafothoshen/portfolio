@@ -12,6 +12,8 @@ export const profile = {
   role: "Full-Stack Web Developer",
   tagline:
     "4th year CSE student building real-world web apps with Django, React and Next.js.",
+  // Hero section e chip hishebe dekhabe
+  techStack: ["Django", "React", "Next.js", "TypeScript", "Tailwind CSS"],
   location: "Dhaka, Bangladesh",
   university: "BUBT",
   email: "your-email@example.com", // TODO: nijer asol email diye bodlao

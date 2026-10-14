@@ -9,13 +9,16 @@ import Footer from "@/components/layout/Footer";
 export default function Home() {
   return (
     <>
+      {/* Hero full-width, tai main er baire */}
+      <Hero />
+
       <main className="mx-auto max-w-3xl px-5">
-        <Hero />
         <About />
         <Projects />
         <Skills />
         <Contact />
       </main>
+
       <Footer />
     </>
   );
