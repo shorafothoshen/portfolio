@@ -1,101 +1,181 @@
-import Link from "next/link";
-import { profile, socialLinks } from "@/data/portfolio";
+"use client";
+
+import Image from "next/image";
+import type { ReactNode } from "react";
+import {
+  ArrowRight,
+  Award,
+  CheckCircle2,
+  Code2,
+  LayoutGrid,
+  Users,
+} from "lucide-react";
+import { FaGithub, FaLinkedin, FaMedium, FaTwitter } from "react-icons/fa";
+
+type Stat = { icon: ReactNode; value: string; label: string; tone: string };
+
+const stats: Stat[] = [
+  {
+    icon: <Code2 className="h-5 w-5" />,
+    value: "5+",
+    label: "Years Experience",
+    tone: "bg-violet-500/15 text-violet-400",
+  },
+  {
+    icon: <CheckCircle2 className="h-5 w-5" />,
+    value: "50+",
+    label: "Projects Completed",
+    tone: "bg-emerald-500/15 text-emerald-400",
+  },
+  {
+    icon: <Users className="h-5 w-5" />,
+    value: "30+",
+    label: "Happy Clients",
+    tone: "bg-orange-500/15 text-orange-400",
+  },
+  {
+    icon: <Award className="h-5 w-5" />,
+    value: "10+",
+    label: "Technologies",
+    tone: "bg-pink-500/15 text-pink-400",
+  },
+];
+
+const socials = [
+  { icon: FaGithub, href: "https://github.com/", label: "GitHub" },
+  { icon: FaLinkedin, href: "https://linkedin.com/", label: "LinkedIn" },
+];
 
 export default function Hero() {
+  const scrollTo = (id: string) =>
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+
   return (
-    // isolate = background gulo ei section er bhetorei thake
     <section
       id="home"
-      className="relative isolate flex min-h-screen scroll-mt-24 items-center justify-center overflow-hidden px-5 py-32"
+      className="relative overflow-hidden bg-[#0a0a14] pt-[72px]"
     >
-      {/* ---------- Background (shudhu design, kono content nai) ---------- */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
-        {/* halka grid, majhkhane dekha jay, kinare fade hoye jay */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8882_1px,transparent_1px),linear-gradient(to_bottom,#8882_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_70%)]" />
-        {/* duita rongin glow */}
-        <div className="absolute left-1/2 top-1/3 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-500/30 blur-3xl" />
-        <div className="absolute left-[60%] top-1/2 h-64 w-64 rounded-full bg-violet-500/20 blur-3xl" />
+      <div className="mx-auto grid max-w-6xl items-end gap-10 px-5 pt-12 md:grid-cols-2">
+        {/* Left */}
+        <div className="pb-12">
+          <span className="inline-flex items-center gap-2 rounded-lg bg-white/5 px-3 py-1.5 text-sm text-gray-200">
+            <span>👋</span> Hello, I&apos;m
+          </span>
+
+          <h1 className="mt-4 whitespace-nowrap text-5xl font-bold leading-[1.05] tracking-tight text-white sm:text-6xl">
+            Shorafot <span className="text-violet-400">Hoshen</span>
+          </h1>
+          <h2 className="mt-4 text-2xl font-semibold text-white">
+            Full Stack Developer
+          </h2>
+
+          <p className="mt-6 max-w-sm text-sm leading-7 text-gray-300">
+            I build exceptional digital experiences that are fast, accessible,
+            visually appealing and responsive. Let&apos;s build something
+            amazing together!
+          </p>
+
+          <div className="mt-8 flex flex-wrap gap-4">
+            <button
+              onClick={() => scrollTo("contact")}
+              className="inline-flex items-center gap-3 rounded-md bg-violet-500 px-6 py-3 text-sm font-medium text-white transition hover:bg-violet-600"
+            >
+              Hire Me <ArrowRight className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => scrollTo("projects")}
+              className="inline-flex items-center gap-3 rounded-md border border-white/20 px-6 py-3 text-sm font-medium text-white transition hover:bg-white/5"
+            >
+              View Projects <LayoutGrid className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="mt-8 flex items-center gap-5 text-white">
+            <span className="text-sm">Follow me on</span>
+            {socials.map(({ icon: Icon, href, label }) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={label}
+                className="transition hover:text-violet-400"
+              >
+                <Icon className="h-5 w-5" />
+              </a>
+            ))}
+          </div>
+        </div>
+
+        {/* Right */}
+        <div className="relative mx-auto h-[420px] w-full max-w-md overflow-hidden md:h-[500px]">
+          {/* dotted grid */}
+          <div
+            className="absolute left-10 top-8 h-24 w-24 opacity-40"
+            style={{
+              backgroundImage:
+                "radial-gradient(#9ca3af 1.5px, transparent 1.5px)",
+              backgroundSize: "16px 16px",
+            }}
+          />
+          {/* circle: niche theke clip hobe (-bottom), photo er bottom-er sathe flat cut */}
+          <div className="absolute -bottom-20 right-2 h-[345px] w-[340px] rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 md:h-[420px] md:w-[420px]" />
+          {/* photo: bottom-0 tai container er niche line e boshe */}
+          <Image
+            src="/hero-image.png"
+            alt="shorafot"
+            width={420}
+            height={465}
+            priority
+            className="absolute bottom-0 right-8 h-[92%] w-auto object-contain"
+          />
+
+          {/* floating cards
+          <div className="absolute left-0 top-24 rounded-xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur">
+            <p className="text-2xl font-bold text-violet-400">5+</p>
+            <p className="text-xs text-gray-300">
+              Years
+              <br />
+              Experience
+            </p>
+          </div>
+          <div className="absolute bottom-24 right-0 rounded-xl border border-white/10 bg-[#12121f]/90 px-4 py-3 backdrop-blur">
+            <div className="flex items-center justify-between gap-6">
+              <p className="text-2xl font-bold text-violet-400">50+</p>
+              <CheckCircle2 className="h-4 w-4 text-violet-400" />
+            </div>
+            <p className="text-xs text-gray-300">
+              Projects
+              <br />
+              Completed
+            </p>
+          </div> */}
+        </div>
       </div>
 
-      {/* ---------- Content ---------- */}
-      <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
-        {/* Status pill */}
-        <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white/70 px-4 py-1.5 text-sm font-medium text-gray-700 backdrop-blur dark:border-gray-700 dark:bg-gray-900/70 dark:text-gray-300">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
-          </span>
-          4th Year CSE · {profile.university}
-        </div>
-
-        {/* Naam: gradient text */}
-        <h1 className="text-5xl font-bold leading-[1.05] tracking-tight sm:text-7xl">
-          Hi, I&apos;m{" "}
-          <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-violet-400">
-            {profile.name}
-          </span>
-        </h1>
-
-        <p className="mt-5 text-xl font-semibold text-gray-800 sm:text-2xl dark:text-gray-200">
-          {profile.role}
-        </p>
-
-        <p className="mt-4 max-w-xl text-lg text-gray-600 dark:text-gray-400">
-          {profile.tagline}
-        </p>
-
-        {/* Buttons */}
-        <div className="mt-9 flex flex-wrap justify-center gap-3">
-          <Link
-            href="#projects"
-            className="rounded-full bg-gray-900 px-7 py-3 font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:-translate-y-0.5 hover:bg-blue-600 dark:bg-white dark:text-gray-900 dark:hover:bg-blue-400"
-          >
-            View Projects
-          </Link>
-          <Link
-            href="#contact"
-            className="rounded-full border border-gray-300 bg-white/60 px-7 py-3 font-semibold backdrop-blur transition hover:-translate-y-0.5 hover:bg-white dark:border-gray-700 dark:bg-gray-900/60 dark:hover:bg-gray-800"
-          >
-            Contact me
-          </Link>
-        </div>
-
-        {/* Tech stack chips */}
-        <ul className="mt-12 flex flex-wrap justify-center gap-2">
-          {profile.techStack.map((tech) => (
-            <li
-              key={tech}
-              className="rounded-full border border-gray-200 bg-white/60 px-3 py-1 text-sm text-gray-600 backdrop-blur dark:border-gray-800 dark:bg-gray-900/60 dark:text-gray-400"
+      {/* Stats bar */}
+      {/* <div className="mx-auto max-w-6xl px-5 pb-10">
+        <div className="grid grid-cols-2 gap-6 rounded-xl border border-white/10 bg-white/[0.03] p-6 md:grid-cols-4 md:gap-0">
+          {stats.map((s, i) => (
+            <div
+              key={s.label}
+              className={`flex items-center justify-center gap-4 ${
+                i !== 0 ? "md:border-l md:border-white/10" : ""
+              }`}
             >
-              {tech}
-            </li>
-          ))}
-        </ul>
-
-        {/* Social link */}
-        <div className="mt-6 flex flex-wrap justify-center gap-5 text-sm font-medium text-gray-500 dark:text-gray-400">
-          {socialLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="transition hover:text-blue-600 dark:hover:text-blue-400"
-            >
-              {link.label} ↗
-            </Link>
+              <span
+                className={`flex h-11 w-11 items-center justify-center rounded-full ${s.tone}`}
+              >
+                {s.icon}
+              </span>
+              <div>
+                <p className="text-2xl font-bold text-white">{s.value}</p>
+                <p className="text-xs text-gray-300">{s.label}</p>
+              </div>
+            </div>
           ))}
         </div>
-      </div>
-
-      {/* Scroll indicator */}
-      <Link
-        href="#about"
-        aria-label="Scroll to about section"
-        className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 animate-bounce text-gray-400 hover:text-blue-600 sm:block"
-      >
-        ↓
-      </Link>
+      </div> */}
     </section>
   );
 }
