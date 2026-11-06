@@ -129,53 +129,9 @@ export default function Hero() {
             priority
             className="absolute bottom-0 right-8 h-[92%] w-auto object-contain"
           />
-
-          {/* floating cards
-          <div className="absolute left-0 top-24 rounded-xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur">
-            <p className="text-2xl font-bold text-violet-400">5+</p>
-            <p className="text-xs text-gray-300">
-              Years
-              <br />
-              Experience
-            </p>
-          </div>
-          <div className="absolute bottom-24 right-0 rounded-xl border border-white/10 bg-[#12121f]/90 px-4 py-3 backdrop-blur">
-            <div className="flex items-center justify-between gap-6">
-              <p className="text-2xl font-bold text-violet-400">50+</p>
-              <CheckCircle2 className="h-4 w-4 text-violet-400" />
-            </div>
-            <p className="text-xs text-gray-300">
-              Projects
-              <br />
-              Completed
-            </p>
-          </div> */}
         </div>
       </div>
 
-      {/* Stats bar */}
-      {/* <div className="mx-auto max-w-6xl px-5 pb-10">
-        <div className="grid grid-cols-2 gap-6 rounded-xl border border-white/10 bg-white/[0.03] p-6 md:grid-cols-4 md:gap-0">
-          {stats.map((s, i) => (
-            <div
-              key={s.label}
-              className={`flex items-center justify-center gap-4 ${
-                i !== 0 ? "md:border-l md:border-white/10" : ""
-              }`}
-            >
-              <span
-                className={`flex h-11 w-11 items-center justify-center rounded-full ${s.tone}`}
-              >
-                {s.icon}
-              </span>
-              <div>
-                <p className="text-2xl font-bold text-white">{s.value}</p>
-                <p className="text-xs text-gray-300">{s.label}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div> */}
     </section>
   );
 }
