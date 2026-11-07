@@ -1,49 +1,16 @@
 "use client";
 
 import Image from "next/image";
-import type { ReactNode } from "react";
 import {
   ArrowRight,
-  Award,
-  CheckCircle2,
-  Code2,
   LayoutGrid,
-  Users,
 } from "lucide-react";
-import { FaGithub, FaLinkedin, FaMedium, FaTwitter } from "react-icons/fa";
+import { FaGithub, FaLinkedin } from "react-icons/fa";
 
-type Stat = { icon: ReactNode; value: string; label: string; tone: string };
-
-const stats: Stat[] = [
-  {
-    icon: <Code2 className="h-5 w-5" />,
-    value: "5+",
-    label: "Years Experience",
-    tone: "bg-violet-500/15 text-violet-400",
-  },
-  {
-    icon: <CheckCircle2 className="h-5 w-5" />,
-    value: "50+",
-    label: "Projects Completed",
-    tone: "bg-emerald-500/15 text-emerald-400",
-  },
-  {
-    icon: <Users className="h-5 w-5" />,
-    value: "30+",
-    label: "Happy Clients",
-    tone: "bg-orange-500/15 text-orange-400",
-  },
-  {
-    icon: <Award className="h-5 w-5" />,
-    value: "10+",
-    label: "Technologies",
-    tone: "bg-pink-500/15 text-pink-400",
-  },
-];
 
 const socials = [
-  { icon: FaGithub, href: "https://github.com/", label: "GitHub" },
-  { icon: FaLinkedin, href: "https://linkedin.com/", label: "LinkedIn" },
+  { icon: FaGithub, href: "https://github.com/shorafothoshen", label: "GitHub" },
+  { icon: FaLinkedin, href: "https://www.linkedin.com/in/shorafothoshen/", label: "LinkedIn" },
 ];
 
 export default function Hero() {
@@ -53,44 +20,45 @@ export default function Hero() {
   return (
     <section
       id="home"
-      className="relative overflow-hidden bg-[#0a0a14] pt-[72px]"
+      className="relative overflow-hidden bg-[#0a0a14] pt-16 sm:pt-18"
     >
-      <div className="mx-auto grid max-w-6xl items-end gap-10 px-5 pt-12 md:grid-cols-2">
+      <div className="mx-auto grid max-w-6xl items-end gap-4 px-4 pt-8 sm:gap-10 sm:px-5 sm:pt-12 md:grid-cols-2">
         {/* Left */}
-        <div className="pb-12">
+        <div className="pb-4 md:pb-12">
           <span className="inline-flex items-center gap-2 rounded-lg bg-white/5 px-3 py-1.5 text-sm text-gray-200">
             <span>👋</span> Hello, I&apos;m
           </span>
 
-          <h1 className="mt-4 whitespace-nowrap text-5xl font-bold leading-[1.05] tracking-tight text-white sm:text-6xl">
+          {/* Name: screen onujayi size, kokhono 2 line e vangbe na */}
+          <h1 className="mt-4 whitespace-nowrap text-[2rem] font-bold leading-[1.05] tracking-tight text-white min-[400px]:text-4xl min-[480px]:text-5xl sm:text-6xl md:text-4xl lg:text-5xl xl:text-6xl">
             Shorafot <span className="text-violet-400">Hoshen</span>
           </h1>
-          <h2 className="mt-4 text-2xl font-semibold text-white">
+          <h2 className="mt-4 text-xl font-semibold text-white sm:text-2xl">
             Full Stack Developer
           </h2>
 
-          <p className="mt-6 max-w-sm text-sm leading-7 text-gray-300">
+          <p className="mt-5 max-w-sm text-sm leading-7 text-gray-300 sm:mt-6">
             I build exceptional digital experiences that are fast, accessible,
             visually appealing and responsive. Let&apos;s build something
             amazing together!
           </p>
 
-          <div className="mt-8 flex flex-wrap gap-4">
+          <div className="mt-7 flex flex-wrap gap-3 sm:mt-8 sm:gap-4">
             <button
               onClick={() => scrollTo("contact")}
-              className="inline-flex items-center gap-3 rounded-md bg-violet-500 px-6 py-3 text-sm font-medium text-white transition hover:bg-violet-600"
+              className="inline-flex items-center gap-3 rounded-md bg-violet-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-violet-600 sm:px-6"
             >
               Hire Me <ArrowRight className="h-4 w-4" />
             </button>
             <button
               onClick={() => scrollTo("projects")}
-              className="inline-flex items-center gap-3 rounded-md border border-white/20 px-6 py-3 text-sm font-medium text-white transition hover:bg-white/5"
+              className="inline-flex items-center gap-3 rounded-md border border-white/20 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/5 sm:px-6"
             >
               View Projects <LayoutGrid className="h-4 w-4" />
             </button>
           </div>
 
-          <div className="mt-8 flex items-center gap-5 text-white">
+          <div className="mt-7 flex items-center gap-5 text-white sm:mt-8">
             <span className="text-sm">Follow me on</span>
             {socials.map(({ icon: Icon, href, label }) => (
               <a
@@ -108,18 +76,18 @@ export default function Hero() {
         </div>
 
         {/* Right */}
-        <div className="relative mx-auto h-[420px] w-full max-w-md overflow-hidden md:h-[500px]">
+        <div className="relative mx-auto h-85 w-full max-w-md overflow-hidden sm:h-105 md:h-100 lg:h-120 xl:h-125">
           {/* dotted grid */}
           <div
-            className="absolute left-10 top-8 h-24 w-24 opacity-40"
+            className="absolute left-4 top-6 h-20 w-20 opacity-40 sm:left-10 sm:top-8 sm:h-24 sm:w-24"
             style={{
               backgroundImage:
                 "radial-gradient(#9ca3af 1.5px, transparent 1.5px)",
               backgroundSize: "16px 16px",
             }}
           />
-          {/* circle: niche theke clip hobe (-bottom), photo er bottom-er sathe flat cut */}
-          <div className="absolute -bottom-20 right-2 h-[345px] w-[340px] rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 md:h-[420px] md:w-[420px]" />
+          {/* circle: mobile e majhkhane, md+ e dan dike */}
+          <div className="absolute -bottom-14 left-1/2 h-70 w-70 -translate-x-1/2 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 sm:-bottom-20 sm:h-[340px] sm:w-[340px] md:left-auto md:right-2 md:h-[300px] md:w-[300px] md:translate-x-0 lg:h-[400px] lg:w-[400px] xl:h-[420px] xl:w-[420px]" />
           {/* photo: bottom-0 tai container er niche line e boshe */}
           <Image
             src="/hero-image.png"
@@ -127,7 +95,7 @@ export default function Hero() {
             width={420}
             height={465}
             priority
-            className="absolute bottom-0 right-8 h-[92%] w-auto object-contain"
+            className="absolute bottom-0 left-1/2 h-[92%] w-auto -translate-x-1/2 object-contain md:left-auto md:right-8 md:translate-x-0"
           />
         </div>
       </div>

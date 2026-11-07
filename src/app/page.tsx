@@ -11,14 +11,15 @@ export default function Home() {
       <Navbar />
       <main>
         <Hero />
-
-        <div className="bg-[#0c0c18]">
-          <div className="mx-auto grid max-w-6xl gap-x-12 px-5 md:grid-cols-[1fr_1.8fr]">
-            <About />
+        <About />
+ 
+        {/* Skills ekhon About er niche alada section */}
+        <div className="bg-[#0a0a14]">
+          <div className="mx-auto max-w-6xl px-4 sm:px-5">
             <Skills />
           </div>
         </div>
-
+ 
         <Projects />
         <Contact />
       </main>

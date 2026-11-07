@@ -31,9 +31,16 @@ export default function Navbar() {
     const onScroll = () => setScrolled(window.scrollY > 10);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
+
+    // Screen boro (desktop) hole mobile menu nijei bondho hobe
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const onChange = (e: MediaQueryListEvent) => e.matches && setOpen(false);
+    mq.addEventListener("change", onChange);
+
     return () => {
       observer.disconnect();
       window.removeEventListener("scroll", onScroll);
+      mq.removeEventListener("change", onChange);
     };
   }, []);
 
@@ -45,10 +52,10 @@ export default function Navbar() {
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-colors ${
-        scrolled || open ? "bg-[#0a0a14]/90 backdrop-blur-md" : "bg-transparent"
+        scrolled || open ? "bg-[#0a0a14]/95 backdrop-blur-md" : "bg-transparent"
       }`}
     >
-      <nav className="mx-auto flex h-[72px] max-w-6xl items-center justify-between px-5">
+      <nav className="mx-auto flex h-[64px] max-w-6xl items-center justify-between px-4 sm:h-[72px] sm:px-5">
         {/* Logo */}
         <a
           href="#home"
@@ -56,16 +63,16 @@ export default function Navbar() {
             e.preventDefault();
             goTo("home");
           }}
-          className="flex items-center gap-2 text-xl font-semibold text-white"
+          className="flex items-center gap-2 text-lg font-semibold text-white sm:text-xl"
         >
-          <Code2 className="h-6 w-6 text-violet-400" />
-          <span>
+          <Code2 className="h-5 w-5 text-violet-400 sm:h-6 sm:w-6" />
+          <span className="whitespace-nowrap">
             Shorafot <span className="text-violet-400">Hoshen</span>
           </span>
         </a>
 
         {/* Desktop links */}
-        <ul className="hidden items-center gap-9 md:flex">
+        <ul className="hidden items-center gap-9 lg:flex">
           {links.map(({ label, id }) => (
             <li key={id} className="relative">
               <a
@@ -91,7 +98,7 @@ export default function Navbar() {
         <a
           // href="/Shorafot-Hoshen-Resume.pdf"
           download
-          className="hidden items-center gap-2 rounded-md border border-white/20 px-4 py-2 text-xs text-white transition hover:border-violet-400 hover:bg-white/5 md:inline-flex"
+          className="hidden items-center gap-2 rounded-md border border-white/20 px-4 py-2 text-xs text-white transition hover:border-violet-400 hover:bg-white/5 lg:inline-flex"
         >
           Download CV <Download className="h-3.5 w-3.5" />
         </a>
@@ -99,8 +106,9 @@ export default function Navbar() {
         {/* Mobile toggle */}
         <button
           aria-label="Toggle menu"
+          aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
-          className="text-white md:hidden"
+          className="rounded-md p-2 text-white transition hover:bg-white/5 lg:hidden"
         >
           {open ? <X /> : <Menu />}
         </button>
@@ -108,7 +116,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {open && (
-        <ul className="flex flex-col gap-1 border-t border-white/10 px-5 pb-5 pt-3 md:hidden">
+        <ul className="flex max-h-[calc(100vh-64px)] flex-col gap-1 overflow-y-auto border-t border-white/10 px-4 pb-5 pt-3 sm:px-5 lg:hidden">
           {links.map(({ label, id }) => (
             <li key={id}>
               <a
@@ -117,7 +125,7 @@ export default function Navbar() {
                   e.preventDefault();
                   goTo(id);
                 }}
-                className={`block rounded-md px-3 py-2 text-sm ${
+                className={`block rounded-md px-3 py-3 text-sm ${
                   active === id ? "bg-white/5 text-violet-400" : "text-gray-300"
                 }`}
               >
