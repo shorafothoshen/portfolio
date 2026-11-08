@@ -106,13 +106,7 @@ export default function Skills() {
             <p className="text-sm font-medium uppercase tracking-widest text-violet-400">
               My Tech Stack
             </p>
-            <h2 className="mt-2 text-2xl font-bold text-white">
-              Technologies I Work With
-            </h2>
-            <p className="mt-3 max-w-xl text-sm leading-7 text-gray-300">
-              A collection of technologies I use to build applications and
-              continuously expand my development skills.
-            </p>
+            
           </motion.div>
 
           {/* Filters: site er button style (rounded-md) */}
@@ -158,18 +152,7 @@ export default function Skills() {
             </LayoutGroup>
           </motion.div>
 
-          {/* Count + legend */}
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-x-5 gap-y-2 text-xs text-gray-400">
-            <p aria-live="polite">
-              Showing {visible.length} {visible.length === 1 ? "technology" : "technologies"}
-            </p>
-            <p className="flex items-center gap-2">
-              <span className="rounded-full bg-violet-500/15 px-2 py-0.5 text-[10px] font-medium text-violet-300">
-                Learning
-              </span>
-              currently learning, the rest I use actively
-            </p>
-          </div>
+          
 
           {/* Grid: Projects section er moto full width, gap */}
           <ul
@@ -183,27 +166,7 @@ export default function Skills() {
             </AnimatePresence>
           </ul>
 
-          {/* DSA focus: Hero stats bar er style */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.45, ease: "easeOut" }}
-            className="mt-8 flex items-center gap-4 rounded-xl border border-white/10 bg-white/[0.03] p-5 sm:p-6"
-          >
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-violet-500/15 text-violet-400">
-              <LuBinary className="h-5 w-5" aria-hidden />
-            </span>
-            <div>
-              <p className="text-xs text-violet-400">Development focus</p>
-              <p className="mt-1 text-sm font-semibold text-white">
-                Data Structures &amp; Algorithms
-              </p>
-              <p className="mt-1 text-xs leading-5 text-gray-300">
-                I practice regularly to sharpen my problem-solving.
-              </p>
-            </div>
-          </motion.div>
+          
         </div>
       </section>
     </MotionConfig>
