@@ -1,3 +1,4 @@
+import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/Navbar";
 import About from "@/components/sections/About";
 import Contact from "@/components/sections/Contact";
@@ -27,6 +28,7 @@ export default function Home() {
         <Projects/>
         <GithubActivity/>
         <Contact />
+        <Footer/>
       </main>
     </>
   );

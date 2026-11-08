@@ -12,7 +12,7 @@ export interface Education {
 export const education: Education[] = [
   {
     degree: "B.Sc. in Computer Science and Engineering",
-    institution: "Your University Name",
+    institution: "Bangladesh University of Business and Technology",
     period: "2023 – Present",
     status: "ongoing",
     location: "Mirpur-2,Dhaka"
