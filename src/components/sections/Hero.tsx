@@ -38,9 +38,7 @@ export default function Hero() {
           </h2>
 
           <p className="mt-5 max-w-sm text-sm leading-7 text-gray-300 sm:mt-6">
-            I build exceptional digital experiences that are fast, accessible,
-            visually appealing and responsive. Let&apos;s build something
-            amazing together!
+            I build practical web applications by combining clean, interactive user interfaces with reliable backend systems. Passionate about problem-solving, backend development, and turning ideas into real-world solutions through code.
           </p>
 
           <div className="mt-7 flex flex-wrap gap-3 sm:mt-8 sm:gap-4">
