@@ -1,9 +1,11 @@
 import Navbar from "@/components/layout/Navbar";
 import About from "@/components/sections/About";
 import Contact from "@/components/sections/Contact";
+import Education from "@/components/sections/Education";
 import GithubActivity from "@/components/sections/GithubActivity";
 import Hero from "@/components/sections/Hero";
 import Projects from "@/components/sections/Projects";
+
 import Skills from "@/components/sections/Skills";
 
 export default function Home() {
@@ -13,6 +15,7 @@ export default function Home() {
       <main>
         <Hero />
         <About />
+         <Education />
  
         {/* Skills ekhon About er niche alada section */}
         <div className="bg-[#0a0a14]">
@@ -21,7 +24,7 @@ export default function Home() {
           </div>
         </div>
  
-        <Projects />
+        <Projects/>
         <GithubActivity/>
         <Contact />
       </main>

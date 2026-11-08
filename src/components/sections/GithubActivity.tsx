@@ -183,7 +183,7 @@ export default function GithubActivity() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={viewport}
             transition={{ duration: 0.5, ease: "easeOut" }}
-            className="flex flex-wrap items-end justify-between gap-4"
+            className="mb-6 flex flex-wrap items-end justify-between gap-4"
           >
             <div>
               <p className="text-sm font-medium uppercase tracking-widest text-violet-400">
@@ -243,7 +243,7 @@ export default function GithubActivity() {
                   </h3>
                   {c && (
                     <p className="text-xs text-gray-400">
-                      {c.total.toLocaleString("en-US")} public contributions in
+                      {c.total.toLocaleString("en-US")} - public contributions in
                       the last year
                     </p>
                   )}
