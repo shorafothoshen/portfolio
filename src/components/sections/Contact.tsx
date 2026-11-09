@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import type { Variants } from "motion/react";
-import { ArrowUpRight, Check, Copy, Mail, MapPin } from "lucide-react";
+import { ArrowUpRight, Check, Copy, Mail, MapPin, Phone } from "lucide-react";
 import type { IconType } from "react-icons";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 import { SiCodeforces, SiLeetcode } from "react-icons/si";
@@ -44,6 +44,13 @@ function handleFromUrl(url: string): string {
   }
 }
 
+/** Gmail compose window (notun tab e khulbe), "To" field e email age theke boshano thakbe */
+const gmailComposeUrl = (email: string) =>
+  `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}`;
+
+/** "+880 1712-345678" -> "+8801712345678" (tel: link er jonno) */
+const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, "")}`;
+
 async function copyText(text: string): Promise<boolean> {
   try {
     await navigator.clipboard.writeText(text);
@@ -70,6 +77,8 @@ const cardBase =
   "group relative flex items-center gap-4 rounded-xl border border-white/10 bg-white/3 p-4 transition-colors duration-300 sm:p-5";
 const iconCircle =
   "flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/5 text-gray-200 transition-colors duration-300 group-hover:bg-violet-500/15 group-hover:text-violet-400";
+const linkFocus =
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400";
 
 /* ---------- intro (left) ---------- */
 
@@ -116,7 +125,8 @@ export function ContactIntro() {
 
 /* ---------- cards (right) ---------- */
 
-function EmailCard({ email }: { email: string }) {
+/** Copy button: Email ar Phone duto card e-i use hoy */
+function CopyButton({ value, what }: { value: string; what: string }) {
   const [status, setStatus] = useState<"idle" | "copied" | "failed">("idle");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -125,33 +135,19 @@ function EmailCard({ email }: { email: string }) {
   }, []);
 
   const onCopy = async () => {
-    const ok = await copyText(email);
+    const ok = await copyText(value);
     setStatus(ok ? "copied" : "failed");
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => setStatus("idle"), 2200);
   };
 
   return (
-    <motion.li variants={rise} className={`${cardBase} hover:border-violet-400/50`}>
-      <span className={iconCircle}>
-        <Mail className="h-5 w-5" aria-hidden />
-      </span>
-
-      <div className="min-w-0 flex-1">
-        <p className="text-xs text-violet-400">Email</p>
-        <a
-          href={`mailto:${email}`}
-          className="mt-0.5 block break-all text-sm font-medium text-white transition-colors hover:text-violet-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400 sm:text-base"
-        >
-          {email}
-        </a>
-      </div>
-
+    <>
       <button
         type="button"
         onClick={onCopy}
-        aria-label={`Copy email address ${email}`}
-        className={`relative inline-flex shrink-0 items-center gap-2 overflow-hidden rounded-md border px-3 py-2 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400 sm:px-4 ${
+        aria-label={`Copy ${what} ${value}`}
+        className={`relative inline-flex shrink-0 items-center gap-2 overflow-hidden rounded-md border px-3 py-2 text-xs font-medium transition-colors ${linkFocus} sm:px-4 ${
           status === "copied"
             ? "border-violet-400/60 bg-violet-500/15 text-violet-200"
             : "border-white/20 text-white hover:border-violet-400/60 hover:bg-white/5"
@@ -186,8 +182,62 @@ function EmailCard({ email }: { email: string }) {
 
       {/* Screen reader feedback */}
       <span className="sr-only" role="status" aria-live="polite">
-        {status === "copied" ? "Email address copied to clipboard" : status === "failed" ? "Couldn't copy the email address" : ""}
+        {status === "copied" ? `${what} copied to clipboard` : status === "failed" ? `Couldn't copy the ${what}` : ""}
       </span>
+    </>
+  );
+}
+
+function EmailCard({ email }: { email: string }) {
+  return (
+    <motion.li variants={rise} className={`${cardBase} hover:border-violet-400/50`}>
+      <span className={iconCircle}>
+        <Mail className="h-5 w-5" aria-hidden />
+      </span>
+
+      <div className="min-w-0 flex-1">
+        <p className="text-xs text-violet-400">Email</p>
+        {/* Click korle notun tab e Gmail compose khule jabe, "To" te email boshano */}
+        <a
+          href={gmailComposeUrl(email)}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Write an email to ${email} (opens in a new tab)`}
+          className={`mt-0.5 inline-flex max-w-full items-center gap-1.5 break-all text-sm font-medium text-white transition-colors hover:text-violet-300 sm:text-base ${linkFocus}`}
+        >
+          {email}
+          <ArrowUpRight
+            className="h-4 w-4 shrink-0 text-gray-400 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-violet-400"
+            aria-hidden
+          />
+        </a>
+      </div>
+
+      <CopyButton value={email} what="email address" />
+    </motion.li>
+  );
+}
+
+function PhoneCard({ phone }: { phone: string }) {
+  return (
+    <motion.li variants={rise} className={`${cardBase} hover:border-violet-400/50`}>
+      <span className={iconCircle}>
+        <Phone className="h-5 w-5" aria-hidden />
+      </span>
+
+      <div className="min-w-0 flex-1">
+        <p className="text-xs text-violet-400">Phone</p>
+        {/* Mobile e click korle dialer khulbe */}
+        <a
+          href={telHref(phone)}
+          aria-label={`Call ${phone}`}
+          className={`mt-0.5 block text-sm font-medium text-white transition-colors hover:text-violet-300 sm:text-base ${linkFocus}`}
+        >
+          {phone}
+        </a>
+      </div>
+
+      <CopyButton value={phone} what="phone number" />
     </motion.li>
   );
 }
@@ -203,7 +253,7 @@ function SocialCard({ social }: { social: Social }) {
         aria-label={`${social.label} profile (opens in a new tab)`}
         whileHover={{ y: -3 }}
         transition={{ type: "spring", stiffness: 350, damping: 24 }}
-        className={`${cardBase} h-full hover:border-violet-400/50 hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400`}
+        className={`${cardBase} h-full hover:border-violet-400/50 hover:bg-white/5 ${linkFocus}`}
       >
         <span className={`${iconCircle} group-hover:scale-110`}>
           <Icon className="h-5 w-5" aria-hidden />
@@ -237,10 +287,14 @@ function LocationCard({ location }: { location: string }) {
 
 export function ContactLinks() {
   const socials = contact.socials.filter((s) => s.url);
+  const phone = contact.phone.trim();
 
   return (
     <motion.ul variants={list} initial="hidden" whileInView="show" viewport={viewport} className="space-y-3">
       <EmailCard email={contact.email} />
+
+      {/* Phone khali thakle card dekhabe na */}
+      {phone && <PhoneCard phone={phone} />}
 
       {socials.length > 0 && (
         <li>
