@@ -96,7 +96,7 @@ export default function Navbar() {
 
         {/* Download CV */}
         <a
-          // href="/Shorafot-Hoshen-Resume.pdf"
+          href="/Shorafot Hoshen Resume.pdf"
           download
           className="hidden items-center gap-2 rounded-md border border-white/20 px-4 py-2 text-xs text-white transition hover:border-violet-400 hover:bg-white/5 lg:inline-flex"
         >
@@ -135,7 +135,7 @@ export default function Navbar() {
           ))}
           <li className="pt-2">
             <a
-              href="/Alex-Morgan-CV.pdf"
+              href="/Shorafot Hoshen Resume.pdf"
               download
               className="inline-flex items-center gap-2 rounded-md border border-white/20 px-4 py-2 text-xs text-white"
             >

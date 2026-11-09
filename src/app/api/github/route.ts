@@ -13,7 +13,6 @@ export async function GET() {
   return NextResponse.json(data, {
     status: nothingLoaded ? 502 : 200,
     headers: {
-      // সফল response CDN/browser এ ১ ঘণ্টা cache; error কখনো cache হবে না
       "Cache-Control":
         nothingLoaded || hasErrors
           ? "no-store"
