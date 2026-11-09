@@ -1,16 +1,16 @@
 "use client";
 
-import { useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import type { PointerEvent } from "react";
 import Image from "next/image";
 import {
   AnimatePresence,
   MotionConfig,
+  animate,
   motion,
   useMotionTemplate,
   useMotionValue,
   useReducedMotion,
-  useScroll,
   useSpring,
   useTransform,
 } from "motion/react";
@@ -96,6 +96,34 @@ const textItem = (dir: 1 | -1, reduce: boolean): Variants =>
         show: { opacity: 1, x: 0, transition: { duration: 0.6, ease: EASE } },
       };
 
+// Floating glass pill / arrow: reveal er pore pop kore ashe
+const popVariants = (reduce: boolean, delay: number): Variants =>
+  reduce
+    ? { hidden: { opacity: 0 }, show: { opacity: 1, transition: { duration: 0.3 } } }
+    : {
+        hidden: { opacity: 0, y: 18, scale: 0.9 },
+        show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.6, delay, ease: EASE } },
+      };
+
+// Tech chip: ekta ekta kore pop kore ashe
+const chipList: Variants = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { duration: 0.3, staggerChildren: 0.05, delayChildren: 0.1 } },
+};
+const chipItem = (reduce: boolean): Variants =>
+  reduce
+    ? { hidden: { opacity: 0 }, show: { opacity: 1 } }
+    : {
+        hidden: { opacity: 0, scale: 0.8, y: 10 },
+        show: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.4, ease: EASE } },
+      };
+
+// Title er niche accent line: baam theke dan e boro hoy
+const lineVariants = (reduce: boolean): Variants =>
+  reduce
+    ? { hidden: { opacity: 0 }, show: { opacity: 1 } }
+    : { hidden: { scaleX: 0 }, show: { scaleX: 1, transition: { duration: 0.8, ease: EASE } } };
+
 /* ---------- image frame (glassmorphism) ---------- */
 
 function ProjectImage({
@@ -111,12 +139,7 @@ function ProjectImage({
   reduce: boolean;
   desktop: boolean;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const motionOn = desktop && !reduce; // parallax + 3D tilt
-
-  // Scroll parallax (image only)
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const y = useTransform(scrollYProgress, [0, 1], ["-5%", "5%"]);
+  const motionOn = desktop && !reduce; // 3D tilt + shine
 
   // Mouse-following tilt + glass shine
   const mx = useMotionValue(0.5);
@@ -126,6 +149,24 @@ function ProjectImage({
   const px = useTransform(mx, (v) => `${v * 100}%`);
   const py = useTransform(my, (v) => `${v * 100}%`);
   const shine = useMotionTemplate`radial-gradient(380px circle at ${px} ${py}, rgba(255,255,255,0.16), transparent 50%)`;
+
+  // Hover e card er chardike ghurte thaka gradient border
+  const angle = useMotionValue(0);
+  useEffect(() => {
+    if (!motionOn) return;
+    const controls = animate(angle, 360, { duration: 6, ease: "linear", repeat: Infinity });
+    return () => controls.stop();
+  }, [motionOn, angle]);
+  const ring = useMotionTemplate`conic-gradient(from ${angle}deg, transparent 0deg, transparent 200deg, rgba(167,139,250,0.95) 290deg, rgba(129,140,248,0.95) 340deg, transparent 360deg)`;
+
+  // Pichoner glow orb gulo dhire dhire bhashe
+  const drift = (dx: number, dy: number, duration: number) =>
+    reduce
+      ? {}
+      : {
+          animate: { x: [0, dx, -dx / 2, 0], y: [0, dy, -dy / 2, 0] },
+          transition: { duration, repeat: Infinity, ease: "easeInOut" as const },
+        };
 
   const onMove = (e: PointerEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
@@ -145,27 +186,34 @@ function ProjectImage({
   const screen = (
     <div className="relative p-3 sm:p-4">
       <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl bg-[#12121f]/60 ring-1 ring-white/20 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.6)]">
-        <motion.div
-          className="absolute inset-x-0 -inset-y-[6%] will-change-transform"
-          style={motionOn ? { y } : undefined}
-        >
-          <motion.div className="relative h-full w-full" variants={imageScaleVariants(reduce)}>
-            {project.image ? (
+        <motion.div className="absolute inset-0" variants={imageScaleVariants(reduce)}>
+          {project.image ? (
+            <>
+              {/* Pichone ek-i image blur kore: contain er fanka jayga gulo sundor vabe bhore jay */}
+              <Image
+                src={project.image}
+                alt=""
+                fill
+                sizes="(min-width: 1024px) 58vw, 100vw"
+                className="scale-125 object-cover opacity-60 blur-2xl"
+                aria-hidden
+              />
+              {/* Shamner image: puro ta dekha jabe, kono crop/zoom nai */}
               <Image
                 src={project.image}
                 alt={`${project.title} screenshot`}
                 fill
                 sizes="(min-width: 1024px) 58vw, 100vw"
-                className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+                className="object-contain transition-transform duration-700 ease-out group-hover:scale-[1.02]"
               />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-violet-500/40 via-indigo-500/20 to-fuchsia-500/20 transition-transform duration-700 ease-out group-hover:scale-105">
-                <span className="px-6 text-center text-3xl font-bold text-white/30">
-                  {project.title}
-                </span>
-              </div>
-            )}
-          </motion.div>
+            </>
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-violet-500/40 via-indigo-500/20 to-fuchsia-500/20 transition-transform duration-700 ease-out group-hover:scale-105">
+              <span className="px-6 text-center text-3xl font-bold text-white/30">
+                {project.title}
+              </span>
+            </div>
+          )}
         </motion.div>
 
         {/* soft top-left glass reflection */}
@@ -189,7 +237,8 @@ function ProjectImage({
       </div>
 
       {/* floating glass pill: number + title (bottom-left, overlaps image) */}
-      <div
+      <motion.div
+        variants={popVariants(reduce, 0.9)}
         className="pointer-events-none absolute bottom-6 left-6 z-20 flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 py-1.5 pl-2 pr-4 shadow-lg backdrop-blur-xl sm:bottom-8 sm:left-8"
         aria-hidden
       >
@@ -197,16 +246,17 @@ function ProjectImage({
           {num}
         </span>
         <span className="max-w-[10rem] truncate text-xs font-medium text-white">{project.title}</span>
-      </div>
+      </motion.div>
 
       {/* floating glass arrow (bottom-right) */}
       {href && (
-        <span
+        <motion.span
+          variants={popVariants(reduce, 1.05)}
           className="pointer-events-none absolute bottom-6 right-6 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white shadow-lg backdrop-blur-xl transition-all duration-300 group-hover:scale-110 group-hover:bg-white group-hover:text-gray-900 sm:bottom-8 sm:right-8"
           aria-hidden
         >
           <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:rotate-12" />
-        </span>
+        </motion.span>
       )}
 
       {/* mouse-following shine over the glass */}
@@ -221,20 +271,25 @@ function ProjectImage({
   );
 
   return (
-    <motion.div ref={ref} className="relative" style={{ perspective: 1200 }}>
+    <motion.div className="relative" style={{ perspective: 1200 }}>
       {/* Colored orbs behind the glass: this is what makes the frosted blur visible */}
       <motion.div variants={backdropVariants(reduce)} className="pointer-events-none absolute inset-0" aria-hidden>
-        <div
+        <motion.div
+          {...drift(24, 18, 13)}
           className={`absolute -top-10 h-44 w-44 rounded-full bg-violet-500/50 blur-3xl ${
             dir === 1 ? "-left-10" : "-right-10"
           }`}
         />
-        <div
+        <motion.div
+          {...drift(-20, -22, 16)}
           className={`absolute -bottom-12 h-52 w-52 rounded-full bg-indigo-500/40 blur-3xl ${
             dir === 1 ? "-right-8" : "-left-8"
           }`}
         />
-        <div className="absolute left-1/2 top-1/2 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-fuchsia-500/30 blur-3xl" />
+        <motion.div
+          {...drift(30, -14, 19)}
+          className="absolute left-1/2 top-1/2 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-fuchsia-500/30 blur-3xl"
+        />
       </motion.div>
 
       {/* 3D tilt wrapper */}
@@ -247,6 +302,20 @@ function ProjectImage({
         <motion.div variants={frameVariants(dir, reduce)}>
           {/* the frosted glass card */}
           <div className="group relative overflow-hidden rounded-3xl border border-white/20 bg-white/[0.07] shadow-[0_8px_40px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.25)] backdrop-blur-2xl transition-all duration-500 hover:border-white/35 hover:bg-white/[0.1] hover:shadow-[0_8px_60px_rgba(139,92,246,0.35),inset_0_1px_0_rgba(255,255,255,0.35)]">
+            {motionOn && (
+              <motion.div
+                className="pointer-events-none absolute inset-0 z-40 rounded-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                style={{
+                  background: ring,
+                  padding: 1.5,
+                  WebkitMask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+                  WebkitMaskComposite: "xor",
+                  maskComposite: "exclude",
+                }}
+                aria-hidden
+              />
+            )}
+
             {href ? (
               <a
                 href={href}
@@ -308,19 +377,27 @@ function ProjectItem({ project, index }: { project: ProjectType; index: number }
           {project.title}
         </motion.h3>
 
+        <motion.span
+          variants={lineVariants(reduce)}
+          className="mt-3 block h-0.5 w-14 origin-left rounded-full bg-gradient-to-r from-violet-400 to-indigo-400"
+          aria-hidden
+        />
+
         <motion.p variants={item} className="mt-4 text-sm leading-7 text-gray-300 sm:text-base sm:leading-8">
           {project.description}
         </motion.p>
 
         {tech.length > 0 && (
-          <motion.ul variants={item} className="mt-5 flex flex-wrap gap-2" aria-label="Technologies used">
+          <motion.ul variants={chipList} className="mt-5 flex flex-wrap gap-2" aria-label="Technologies used">
             {tech.map((t) => (
-              <li
+              <motion.li
                 key={t}
+                variants={chipItem(reduce)}
+                whileHover={reduce ? undefined : { y: -2 }}
                 className="rounded-md border border-white/10 bg-white/5 px-3 py-1 text-xs text-gray-200 transition-colors hover:border-violet-400/40 hover:text-white"
               >
                 {t}
-              </li>
+              </motion.li>
             ))}
           </motion.ul>
         )}
@@ -328,7 +405,10 @@ function ProjectItem({ project, index }: { project: ProjectType; index: number }
         {(demo || github) && (
           <motion.div variants={item} className="mt-7 flex flex-wrap items-center gap-3 sm:gap-4">
             {demo && (
-              <a
+              <motion.a
+                whileHover={reduce ? undefined : { y: -2 }}
+                whileTap={reduce ? undefined : { scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 400, damping: 22 }}
                 href={demo}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -336,10 +416,13 @@ function ProjectItem({ project, index }: { project: ProjectType; index: number }
               >
                 Live Demo
                 <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5" aria-hidden />
-              </a>
+              </motion.a>
             )}
             {github && (
-              <a
+              <motion.a
+                whileHover={reduce ? undefined : { y: -2 }}
+                whileTap={reduce ? undefined : { scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 400, damping: 22 }}
                 href={github}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -348,7 +431,7 @@ function ProjectItem({ project, index }: { project: ProjectType; index: number }
                 <FaGithub className="h-4 w-4" aria-hidden />
                 Source Code
                 <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5" aria-hidden />
-              </a>
+              </motion.a>
             )}
           </motion.div>
         )}
@@ -462,7 +545,7 @@ export default function Projects() {
           </motion.div>
 
           {/* key={active}: filter bodlale list notun kore mount hoy, tai reveal animation abar chole */}
-          <AnimatePresence mode="wait" initial={false}>
+          <AnimatePresence mode="wait">
             <motion.ol
               key={active}
               initial={{ opacity: 0 }}
