@@ -543,18 +543,6 @@ function ProjectModal({
               </ModalSection>
             )}
 
-            {project.challenges && project.challenges.length > 0 && (
-              <ModalSection title="Challenges Faced">
-                <BulletList items={project.challenges} />
-              </ModalSection>
-            )}
-
-            {project.improvements && project.improvements.length > 0 && (
-              <ModalSection title="Future Improvements">
-                <BulletList items={project.improvements} />
-              </ModalSection>
-            )}
-
             {(demo || github) && (
               <div className="mt-5 flex flex-wrap items-center gap-2.5">
                 {demo && (
