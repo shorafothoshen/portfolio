@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import type { PointerEvent } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent, ReactNode } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import {
   AnimatePresence,
@@ -14,8 +15,8 @@ import {
   useSpring,
   useTransform,
 } from "motion/react";
-import type { Variants } from "motion/react";
-import { ArrowUpRight } from "lucide-react";
+import type { MotionValue, Variants } from "motion/react";
+import { ArrowUpRight, Maximize2, X } from "lucide-react";
 import { FaGithub } from "react-icons/fa";
 import { project } from "@/data/projects";
 import type { ProjectType } from "@/data/projects";
@@ -30,6 +31,10 @@ const parseTech = (tech: ProjectType["tech"]): string[] =>
   (Array.isArray(tech) ? tech : tech.split(","))
     .map((t) => t.trim())
     .filter(Boolean);
+
+/** Card e choto description: data te `shortDescription` thakle seta, nahole description (line-clamp e kete jabe) */
+const getShortDescription = (p: ProjectType): string =>
+  (p as ProjectType & { shortDescription?: string }).shortDescription ?? p.description;
 
 /** Parallax / tilt shudhu desktop e (mobile e halka rakhte) */
 function useMediaQuery(query: string): boolean {
@@ -105,19 +110,6 @@ const popVariants = (reduce: boolean, delay: number): Variants =>
         show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.6, delay, ease: EASE } },
       };
 
-// Tech chip: ekta ekta kore pop kore ashe
-const chipList: Variants = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { duration: 0.3, staggerChildren: 0.05, delayChildren: 0.1 } },
-};
-const chipItem = (reduce: boolean): Variants =>
-  reduce
-    ? { hidden: { opacity: 0 }, show: { opacity: 1 } }
-    : {
-        hidden: { opacity: 0, scale: 0.8, y: 10 },
-        show: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.4, ease: EASE } },
-      };
-
 // Title er niche accent line: baam theke dan e boro hoy
 const lineVariants = (reduce: boolean): Variants =>
   reduce
@@ -131,21 +123,35 @@ function ProjectImage({
   index,
   dir,
   reduce,
-  desktop,
+  motionOn,
+  mx,
+  my,
+  onOpen,
 }: {
   project: ProjectType;
   index: number;
   dir: 1 | -1;
   reduce: boolean;
-  desktop: boolean;
+  motionOn: boolean; // desktop && !reduce
+  mx: MotionValue<number>; // mouse position (0..1) puro project item er moddhe
+  my: MotionValue<number>;
+  onOpen: () => void;
 }) {
-  const motionOn = desktop && !reduce; // 3D tilt + shine
+  // Mouse jekhane jay card sekhane tilt hobe
+  const rotateX = useSpring(useTransform(my, [0, 1], [10, -10]), { stiffness: 120, damping: 18 });
+  const rotateY = useSpring(useTransform(mx, [0, 1], [-14, 14]), { stiffness: 120, damping: 18 });
 
-  // Mouse-following tilt + glass shine
-  const mx = useMotionValue(0.5);
-  const my = useMotionValue(0.5);
-  const rotateX = useSpring(useTransform(my, [0, 1], [4, -4]), { stiffness: 140, damping: 18 });
-  const rotateY = useSpring(useTransform(mx, [0, 1], [-5, 5]), { stiffness: 140, damping: 18 });
+  // Image nijeo mouse er sathe ghurbe (parallax): shamner image mouse er dike, pichoner blur ulta dike
+  const imgX = useSpring(useTransform(mx, [0, 1], [-30, 30]), { stiffness: 110, damping: 20 });
+  const imgY = useSpring(useTransform(my, [0, 1], [-20, 20]), { stiffness: 110, damping: 20 });
+  const bgX = useSpring(useTransform(mx, [0, 1], [18, -18]), { stiffness: 90, damping: 20 });
+  const bgY = useSpring(useTransform(my, [0, 1], [12, -12]), { stiffness: 90, damping: 20 });
+
+  // Floating pill / icon o mouse er ulta dike bhashe: ekta depth er feel dey
+  const pillX = useSpring(useTransform(mx, [0, 1], [10, -10]), { stiffness: 90, damping: 16 });
+  const pillY = useSpring(useTransform(my, [0, 1], [6, -6]), { stiffness: 90, damping: 16 });
+
+  // Glass shine mouse er pichone pichone
   const px = useTransform(mx, (v) => `${v * 100}%`);
   const py = useTransform(my, (v) => `${v * 100}%`);
   const shine = useMotionTemplate`radial-gradient(380px circle at ${px} ${py}, rgba(255,255,255,0.16), transparent 50%)`;
@@ -168,44 +174,42 @@ function ProjectImage({
           transition: { duration, repeat: Infinity, ease: "easeInOut" as const },
         };
 
-  const onMove = (e: PointerEvent<HTMLDivElement>) => {
-    const r = e.currentTarget.getBoundingClientRect();
-    mx.set((e.clientX - r.left) / r.width);
-    my.set((e.clientY - r.top) / r.height);
-  };
-  const onLeave = () => {
-    mx.set(0.5);
-    my.set(0.5);
-  };
-
-  const isDemo = hasLink(project.demo);
-  const href = isDemo ? project.demo : hasLink(project.github) ? project.github : undefined;
-  const label = isDemo ? `Open ${project.title} live demo` : `Open ${project.title} repository`;
   const num = String(index + 1).padStart(2, "0");
 
   const screen = (
-    <div className="relative p-3 sm:p-4">
-      <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl bg-[#12121f]/60 ring-1 ring-white/20 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.6)]">
+    <div className="relative p-2.5 sm:p-3">
+      <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl bg-[#12121f]/60 ring-1 ring-white/20 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.6)]">
         <motion.div className="absolute inset-0" variants={imageScaleVariants(reduce)}>
           {project.image ? (
             <>
               {/* Pichone ek-i image blur kore: contain er fanka jayga gulo sundor vabe bhore jay */}
-              <Image
-                src={project.image}
-                alt=""
-                fill
-                sizes="(min-width: 1024px) 58vw, 100vw"
-                className="scale-125 object-cover opacity-60 blur-2xl"
+              <motion.div
+                className="absolute inset-0"
+                style={motionOn ? { x: bgX, y: bgY } : undefined}
                 aria-hidden
-              />
-              {/* Shamner image: puro ta dekha jabe, kono crop/zoom nai */}
-              <Image
-                src={project.image}
-                alt={`${project.title} screenshot`}
-                fill
-                sizes="(min-width: 1024px) 58vw, 100vw"
-                className="object-contain transition-transform duration-700 ease-out group-hover:scale-[1.02]"
-              />
+              >
+                <Image
+                  src={project.image}
+                  alt=""
+                  fill
+                  sizes="(min-width: 1024px) 40vw, 90vw"
+                  className="scale-125 object-cover opacity-60 blur-2xl"
+                  aria-hidden
+                />
+              </motion.div>
+              {/* Shamner image: puro ta dekha jabe, mouse er sathe halka ghurbe */}
+              <motion.div
+                className="absolute inset-0"
+                style={motionOn ? { x: imgX, y: imgY } : undefined}
+              >
+                <Image
+                  src={project.image}
+                  alt={`${project.title} screenshot`}
+                  fill
+                  sizes="(min-width: 1024px) 40vw, 90vw"
+                  className="object-contain transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+                />
+              </motion.div>
             </>
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-violet-500/40 via-indigo-500/20 to-fuchsia-500/20 transition-transform duration-700 ease-out group-hover:scale-105">
@@ -238,31 +242,39 @@ function ProjectImage({
 
       {/* floating glass pill: number + title (bottom-left, overlaps image) */}
       <motion.div
-        variants={popVariants(reduce, 0.9)}
-        className="pointer-events-none absolute bottom-6 left-6 z-20 flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 py-1.5 pl-2 pr-4 shadow-lg backdrop-blur-xl sm:bottom-8 sm:left-8"
+        style={motionOn ? { x: pillX, y: pillY } : undefined}
+        className="pointer-events-none absolute bottom-5 left-5 z-20 sm:bottom-6 sm:left-6"
         aria-hidden
+      >
+      <motion.div
+        variants={popVariants(reduce, 0.9)}
+        className="flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 py-1.5 pl-2 pr-4 shadow-lg backdrop-blur-xl"
       >
         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/90 text-[10px] font-bold text-gray-900">
           {num}
         </span>
         <span className="max-w-[10rem] truncate text-xs font-medium text-white">{project.title}</span>
       </motion.div>
+      </motion.div>
 
-      {/* floating glass arrow (bottom-right) */}
-      {href && (
+      {/* floating glass icon (bottom-right): click korle details modal khule */}
+      <motion.div
+        style={motionOn ? { x: pillX, y: pillY } : undefined}
+        className="pointer-events-none absolute bottom-5 right-5 z-20 sm:bottom-6 sm:right-6"
+        aria-hidden
+      >
         <motion.span
           variants={popVariants(reduce, 1.05)}
-          className="pointer-events-none absolute bottom-6 right-6 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white shadow-lg backdrop-blur-xl transition-all duration-300 group-hover:scale-110 group-hover:bg-white group-hover:text-gray-900 sm:bottom-8 sm:right-8"
-          aria-hidden
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white shadow-lg backdrop-blur-xl transition-all duration-300 group-hover:scale-110 group-hover:bg-white group-hover:text-gray-900"
         >
-          <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:rotate-12" />
+          <Maximize2 className="h-4 w-4" />
         </motion.span>
-      )}
+      </motion.div>
 
       {/* mouse-following shine over the glass */}
       {motionOn && (
         <motion.div
-          className="pointer-events-none absolute inset-0 z-30 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          className="pointer-events-none absolute inset-0 z-30 opacity-0 transition-opacity duration-300 group-hover/item:opacity-100"
           style={{ background: shine }}
           aria-hidden
         />
@@ -292,10 +304,8 @@ function ProjectImage({
         />
       </motion.div>
 
-      {/* 3D tilt wrapper */}
+      {/* 3D tilt wrapper (mouse position ashe parent <li> theke) */}
       <motion.div
-        onPointerMove={motionOn ? onMove : undefined}
-        onPointerLeave={motionOn ? onLeave : undefined}
         style={motionOn ? { rotateX, rotateY, transformStyle: "preserve-3d" } : undefined}
         className="relative"
       >
@@ -304,7 +314,7 @@ function ProjectImage({
           <div className="group relative overflow-hidden rounded-3xl border border-white/20 bg-white/[0.07] shadow-[0_8px_40px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.25)] backdrop-blur-2xl transition-all duration-500 hover:border-white/35 hover:bg-white/[0.1] hover:shadow-[0_8px_60px_rgba(139,92,246,0.35),inset_0_1px_0_rgba(255,255,255,0.35)]">
             {motionOn && (
               <motion.div
-                className="pointer-events-none absolute inset-0 z-40 rounded-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                className="pointer-events-none absolute inset-0 z-40 rounded-3xl opacity-0 transition-opacity duration-500 group-hover/item:opacity-100"
                 style={{
                   background: ring,
                   padding: 1.5,
@@ -316,21 +326,264 @@ function ProjectImage({
               />
             )}
 
-            {href ? (
-              <a
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={label}
-                className="block focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-violet-400"
-              >
-                {screen}
-              </a>
-            ) : (
-              screen
-            )}
+            {/* Image e click korleo details modal khulbe */}
+            <button
+              type="button"
+              onClick={onOpen}
+              aria-haspopup="dialog"
+              aria-label={`View details of ${project.title}`}
+              className="block w-full cursor-pointer text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-violet-400"
+            >
+              {screen}
+            </button>
           </div>
         </motion.div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+/* ---------- details modal ---------- */
+
+/** SSR e false, client e true: portal shudhu client e render korar jonno */
+const useIsClient = () =>
+  useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+
+/** Slim, violet scrollbar (Firefox + Chrome/Safari) */
+const SCROLL =
+  "overscroll-contain [scrollbar-width:thin] [scrollbar-color:rgba(139,92,246,0.55)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-violet-500/50";
+
+function ModalSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="mt-5">
+      <h4 className="text-xs font-semibold uppercase tracking-widest text-violet-400">{title}</h4>
+      <div className="mt-2.5">{children}</div>
+    </section>
+  );
+}
+
+function BulletList({ items }: { items: string[] }) {
+  return (
+    <ul className="space-y-2">
+      {items.map((t) => (
+        <li key={t} className="flex gap-3 text-sm leading-6 text-gray-300">
+          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-violet-400" aria-hidden />
+          <span>{t}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function ProjectModal({
+  project,
+  reduce,
+  onClose,
+}: {
+  project: ProjectType;
+  reduce: boolean;
+  onClose: () => void;
+}) {
+  const titleId = useId();
+  const panelRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+
+  const tech = parseTech(project.tech);
+  const demo = hasLink(project.demo) ? project.demo : undefined;
+  const github = hasLink(project.github) ? project.github : undefined;
+
+  // Scroll lock + Esc diye bondho + prothome Close button e focus
+  useEffect(() => {
+    const body = document.body;
+    const prevOverflow = body.style.overflow;
+    const prevPadding = body.style.paddingRight;
+    const scrollbar = window.innerWidth - document.documentElement.clientWidth;
+    body.style.overflow = "hidden";
+    if (scrollbar > 0) body.style.paddingRight = `${scrollbar}px`; // scrollbar sorle layout lafay na
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    closeRef.current?.focus();
+
+    return () => {
+      body.style.overflow = prevOverflow;
+      body.style.paddingRight = prevPadding;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
+
+  // Tab key modal er bhitore-i ghurbe (focus trap)
+  const onKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== "Tab") return;
+    const nodes = panelRef.current?.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+    if (!nodes || nodes.length === 0) return;
+    const first = nodes[0];
+    const last = nodes[nodes.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
+
+  const panelMotion = reduce
+    ? { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } }
+    : {
+        initial: { opacity: 0, y: 40, scale: 0.96 },
+        animate: { opacity: 1, y: 0, scale: 1 },
+        exit: { opacity: 0, y: 24, scale: 0.97 },
+      };
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 p-3 backdrop-blur-md sm:p-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
+      onMouseDown={(e) => {
+        // backdrop e click korle bondho
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <motion.div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        onKeyDown={onKeyDown}
+        {...panelMotion}
+        transition={{ duration: 0.45, ease: EASE }}
+        className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/15 bg-[#0e0e1c]/95 shadow-[0_30px_100px_rgba(0,0,0,0.6)] sm:max-w-lg md:max-w-4xl md:rounded-3xl"
+      >
+        {/* soft glow */}
+        <div className="pointer-events-none absolute -left-24 -top-24 h-56 w-56 rounded-full bg-violet-600/25 blur-3xl" aria-hidden />
+        <div className="pointer-events-none absolute -bottom-24 -right-24 h-56 w-56 rounded-full bg-indigo-500/20 blur-3xl" aria-hidden />
+
+        <button
+          ref={closeRef}
+          type="button"
+          onClick={onClose}
+          aria-label="Close project details"
+          className="absolute right-3 top-3 z-30 flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/50 text-white backdrop-blur-md transition hover:bg-white hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400"
+        >
+          <X className="h-4 w-4" aria-hidden />
+        </button>
+
+        {/* Mobile: puro ta ek sathe scroll kore. Tablet/desktop: baam e boro image, dan e shob text (nijer scrollbar shoho) */}
+        <div className={`relative flex max-h-[88dvh] flex-col overflow-y-auto md:max-h-none md:flex-row md:overflow-visible ${SCROLL}`}>
+          {/* Left: shudhu image, jate boro ar porishkar dekha jay */}
+          <div className="p-2.5 sm:p-3 md:flex md:w-[58%] md:shrink-0 md:items-center md:p-4">
+            <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl bg-[#12121f] ring-1 ring-white/15 md:aspect-[16/9]">
+              {project.image ? (
+                <>
+                  <Image
+                    src={project.image}
+                    alt=""
+                    fill
+                    sizes="(min-width: 768px) 520px, 90vw"
+                    className="scale-125 object-cover opacity-50 blur-2xl"
+                    aria-hidden
+                  />
+                  <Image
+                    src={project.image}
+                    alt={`${project.title} screenshot`}
+                    fill
+                    sizes="(min-width: 768px) 520px, 90vw"
+                    className="object-contain"
+                  />
+                </>
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-violet-500/40 via-indigo-500/20 to-fuchsia-500/20">
+                  <span className="px-6 text-center text-2xl font-bold text-white/30">{project.title}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right: category, title, overview, tech, links, challenges, improvements */}
+          <div className={`relative px-4 pb-5 pt-1 sm:px-5 md:max-h-[84dvh] md:flex-1 md:overflow-y-auto md:border-l md:border-white/10 md:px-5 md:pt-5 ${SCROLL}`}>
+            <div className="md:pr-10">
+              {project.category && (
+                <span className="inline-block rounded-full bg-violet-500/15 px-3 py-1 text-xs font-medium text-violet-300">
+                  {project.category}
+                </span>
+              )}
+              <h3 id={titleId} className="mt-2.5 text-xl font-bold leading-tight text-white sm:text-2xl">
+                {project.title}
+              </h3>
+            </div>
+
+            <ModalSection title="Overview">
+              <p className="text-sm leading-6 text-gray-300">{project.description}</p>
+            </ModalSection>
+
+            {tech.length > 0 && (
+              <ModalSection title="Technology Stack">
+                <ul className="flex flex-wrap gap-1.5" aria-label="Technologies used">
+                  {tech.map((t) => (
+                    <li
+                      key={t}
+                      className="rounded-md border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-gray-200"
+                    >
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+              </ModalSection>
+            )}
+
+            {project.challenges && project.challenges.length > 0 && (
+              <ModalSection title="Challenges Faced">
+                <BulletList items={project.challenges} />
+              </ModalSection>
+            )}
+
+            {project.improvements && project.improvements.length > 0 && (
+              <ModalSection title="Future Improvements">
+                <BulletList items={project.improvements} />
+              </ModalSection>
+            )}
+
+            {(demo || github) && (
+              <div className="mt-5 flex flex-wrap items-center gap-2.5">
+                {demo && (
+                  <a
+                    href={demo}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group/link inline-flex items-center gap-2 rounded-md bg-violet-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-violet-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400"
+                  >
+                    Live Demo
+                    <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5" aria-hidden />
+                  </a>
+                )}
+                {github && (
+                  <a
+                    href={github}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group/link inline-flex items-center gap-2 rounded-md border border-white/20 px-4 py-2 text-sm font-medium text-white transition hover:border-violet-400/60 hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400"
+                  >
+                    <FaGithub className="h-4 w-4" aria-hidden />
+                    Source Code
+                    <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5" aria-hidden />
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
       </motion.div>
     </motion.div>
   );
@@ -341,39 +594,61 @@ function ProjectImage({
 function ProjectItem({ project, index }: { project: ProjectType; index: number }) {
   const reduce = !!useReducedMotion();
   const desktop = useMediaQuery("(min-width: 1024px)");
+  const motionOn = desktop && !reduce;
 
   const flip = index % 2 === 1;
   const dir: 1 | -1 = flip ? -1 : 1;
   const item = textItem(flip ? 1 : -1, reduce);
 
-  const tech = parseTech(project.tech);
-  const demo = hasLink(project.demo) ? project.demo : undefined;
-  const github = hasLink(project.github) ? project.github : undefined;
+  // Mouse position (0..1) puro project item er bhitore: image tilt + parallax eta theke chole
+  const mx = useMotionValue(0.5);
+  const my = useMotionValue(0.5);
+  const onMove = (e: PointerEvent<HTMLLIElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    mx.set((e.clientX - r.left) / r.width);
+    my.set((e.clientY - r.top) / r.height);
+  };
+  const onLeave = () => {
+    mx.set(0.5);
+    my.set(0.5);
+  };
+
+  // Details modal
+  const isClient = useIsClient();
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const openModal = useCallback(() => setOpen(true), []);
+  const closeModal = useCallback(() => {
+    setOpen(false);
+    triggerRef.current?.focus(); // bondho hole focus abar button e fire ashe
+  }, [setOpen]);
 
   return (
     <motion.li
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, amount: 0.25 }}
-      className="grid items-center gap-10 lg:grid-cols-12 lg:gap-14"
+      onPointerMove={motionOn ? onMove : undefined}
+      onPointerLeave={motionOn ? onLeave : undefined}
+      className="group/item grid items-center gap-6 lg:grid-cols-12 lg:gap-10"
     >
       {/* Image */}
-      <div className={`lg:col-span-7 ${flip ? "lg:order-2" : ""}`}>
-        <ProjectImage project={project} index={index} dir={dir} reduce={reduce} desktop={desktop} />
+      <div className={`mx-auto w-full max-w-md lg:col-span-6 lg:max-w-none ${flip ? "lg:order-2" : ""}`}>
+        <ProjectImage
+          project={project}
+          index={index}
+          dir={dir}
+          reduce={reduce}
+          motionOn={motionOn}
+          mx={mx}
+          my={my}
+          onOpen={openModal}
+        />
       </div>
 
-      {/* Text */}
-      <motion.div variants={textContainer} className={`lg:col-span-5 ${flip ? "lg:order-1" : ""}`}>
-        {project.category && (
-          <motion.span
-            variants={item}
-            className="inline-block rounded-full bg-violet-500/15 px-3 py-1 text-xs font-medium text-violet-300"
-          >
-            {project.category}
-          </motion.span>
-        )}
-
-        <motion.h3 variants={item} className="mt-4 text-2xl font-bold text-white sm:text-3xl">
+      {/* Text: shudhu title + choto description + View Details */}
+      <motion.div variants={textContainer} className={`lg:col-span-6 ${flip ? "lg:order-1" : ""}`}>
+        <motion.h3 variants={item} className="text-xl font-bold text-white sm:text-2xl">
           {project.title}
         </motion.h3>
 
@@ -383,59 +658,39 @@ function ProjectItem({ project, index }: { project: ProjectType; index: number }
           aria-hidden
         />
 
-        <motion.p variants={item} className="mt-4 text-sm leading-7 text-gray-300 sm:text-base sm:leading-8">
-          {project.description}
+        <motion.p
+          variants={item}
+          className="mt-3 line-clamp-3 text-sm leading-7 text-gray-300"
+        >
+          {getShortDescription(project)}
         </motion.p>
 
-        {tech.length > 0 && (
-          <motion.ul variants={chipList} className="mt-5 flex flex-wrap gap-2" aria-label="Technologies used">
-            {tech.map((t) => (
-              <motion.li
-                key={t}
-                variants={chipItem(reduce)}
-                whileHover={reduce ? undefined : { y: -2 }}
-                className="rounded-md border border-white/10 bg-white/5 px-3 py-1 text-xs text-gray-200 transition-colors hover:border-violet-400/40 hover:text-white"
-              >
-                {t}
-              </motion.li>
-            ))}
-          </motion.ul>
-        )}
-
-        {(demo || github) && (
-          <motion.div variants={item} className="mt-7 flex flex-wrap items-center gap-3 sm:gap-4">
-            {demo && (
-              <motion.a
-                whileHover={reduce ? undefined : { y: -2 }}
-                whileTap={reduce ? undefined : { scale: 0.97 }}
-                transition={{ type: "spring", stiffness: 400, damping: 22 }}
-                href={demo}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group/link inline-flex items-center gap-2 rounded-md bg-violet-500 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-violet-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400"
-              >
-                Live Demo
-                <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5" aria-hidden />
-              </motion.a>
-            )}
-            {github && (
-              <motion.a
-                whileHover={reduce ? undefined : { y: -2 }}
-                whileTap={reduce ? undefined : { scale: 0.97 }}
-                transition={{ type: "spring", stiffness: 400, damping: 22 }}
-                href={github}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group/link inline-flex items-center gap-2 rounded-md border border-white/20 px-5 py-2.5 text-sm font-medium text-white transition hover:border-violet-400/60 hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400"
-              >
-                <FaGithub className="h-4 w-4" aria-hidden />
-                Source Code
-                <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5" aria-hidden />
-              </motion.a>
-            )}
-          </motion.div>
-        )}
+        <motion.div variants={item} className="mt-7">
+          <motion.button
+            ref={triggerRef}
+            type="button"
+            onClick={openModal}
+            aria-haspopup="dialog"
+            aria-label={`View details of ${project.title}`}
+            whileHover={reduce ? undefined : { y: -2 }}
+            whileTap={reduce ? undefined : { scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 400, damping: 22 }}
+            className="group/link inline-flex items-center gap-2 rounded-md bg-violet-500 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-violet-500/20 transition hover:bg-violet-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400"
+          >
+            View Details
+            <Maximize2 className="h-4 w-4 transition-transform duration-300 group-hover/link:scale-110" aria-hidden />
+          </motion.button>
+        </motion.div>
       </motion.div>
+
+      {/* Modal: body te portal kora, tai transform/clip er bhitore atke na */}
+      {isClient &&
+        createPortal(
+          <AnimatePresence>
+            {open && <ProjectModal project={project} reduce={reduce} onClose={closeModal} />}
+          </AnimatePresence>,
+          document.body
+        )}
     </motion.li>
   );
 }
@@ -517,7 +772,7 @@ export default function Projects() {
         id="projects"
         className="scroll-mt-16 overflow-hidden bg-[#0c0c18] py-14 sm:scroll-mt-18 sm:py-20"
       >
-        <div className="mx-auto max-w-6xl px-4 sm:px-5">
+        <div className="mx-auto max-w-5xl px-4 sm:px-5">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -552,7 +807,7 @@ export default function Projects() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
-              className="mt-12 space-y-20 sm:mt-14 sm:space-y-28"
+              className="mt-10 space-y-12 sm:mt-12 sm:space-y-16"
             >
               {visible.map((p, i) => (
                 <ProjectItem key={p.title} project={p} index={i} />
