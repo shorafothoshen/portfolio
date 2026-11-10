@@ -760,7 +760,7 @@ export default function Projects() {
         id="projects"
         className="scroll-mt-16 overflow-hidden bg-[#0c0c18] py-14 sm:scroll-mt-18 sm:py-20"
       >
-        <div className="mx-auto max-w-5xl px-4 sm:px-5">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
