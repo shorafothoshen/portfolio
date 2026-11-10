@@ -6,6 +6,7 @@ import { Code2, Download, Menu, X } from "lucide-react";
 const links = [
   { label: "Home", id: "home" },
   { label: "About", id: "about" },
+  { label: "Education", id: "education" },
   { label: "Skills", id: "skills" },
   { label: "Projects", id: "projects" },
   { label: "Contact", id: "contact" },

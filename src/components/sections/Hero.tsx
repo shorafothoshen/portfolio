@@ -1,16 +1,20 @@
 "use client";
 
 import Image from "next/image";
-import {
-  ArrowRight,
-  LayoutGrid,
-} from "lucide-react";
+import { ArrowRight, LayoutGrid } from "lucide-react";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 
-
 const socials = [
-  { icon: FaGithub, href: "https://github.com/shorafothoshen", label: "GitHub" },
-  { icon: FaLinkedin, href: "https://www.linkedin.com/in/shorafothoshen/", label: "LinkedIn" },
+  {
+    icon: FaGithub,
+    href: "https://github.com/shorafothoshen",
+    label: "GitHub",
+  },
+  {
+    icon: FaLinkedin,
+    href: "https://www.linkedin.com/in/shorafothoshen/",
+    label: "LinkedIn",
+  },
 ];
 
 export default function Hero() {
@@ -23,25 +27,34 @@ export default function Hero() {
       className="relative overflow-hidden bg-[#0a0a14] pt-16 sm:pt-18"
     >
       <div className="mx-auto grid max-w-6xl items-end gap-4 px-4 pt-8 sm:gap-10 sm:px-5 sm:pt-12 md:grid-cols-2">
-        {/* Left */}
-        <div className="pb-4 md:pb-12">
-          <span className="inline-flex items-center gap-2 rounded-lg bg-white/5 px-3 py-1.5 text-sm text-gray-200">
-            <span>👋</span> Hello, I&apos;m
-          </span>
+        {/* Left: mobile/tablet e majhkhane (center), md+ e bam dike */}
+        <div className="pb-4 text-center md:pb-12 md:text-left">
+          <div className="flex justify-center md:justify-start">
+            <span className="inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-black/30 px-4 py-2 text-xs font-medium text-gray-100 backdrop-blur sm:text-sm">
+              <span className="relative flex h-2.5 w-2.5" aria-hidden>
+                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400/70 motion-safe:animate-ping" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_2px_rgba(52,211,153,0.6)]" />
+              </span>
+              Open to work
+            </span>
+          </div>
 
           {/* Name: screen onujayi size, kokhono 2 line e vangbe na */}
-          <h1 className="mt-4 whitespace-nowrap text-[2rem] font-bold leading-[1.05] tracking-tight text-white min-[400px]:text-4xl min-[480px]:text-5xl sm:text-6xl md:text-4xl lg:text-5xl xl:text-6xl">
+          <h1 className="mt-4 whitespace-nowrap text-[1.75rem] font-bold leading-[1.05] tracking-tight text-white min-[360px]:text-[2rem] min-[400px]:text-4xl min-[480px]:text-5xl sm:text-6xl md:text-4xl lg:text-5xl xl:text-6xl">
             Shorafot <span className="text-violet-400">Hoshen</span>
           </h1>
           <h2 className="mt-4 text-xl font-semibold text-white sm:text-2xl">
             Full Stack Developer
           </h2>
 
-          <p className="mt-5 max-w-sm text-sm leading-7 text-gray-300 sm:mt-6">
-            I build practical web applications by combining clean, interactive user interfaces with reliable backend systems. Passionate about problem-solving, backend development, and turning ideas into real-world solutions through code.
+          <p className="mx-auto mt-5 max-w-sm text-sm leading-7 text-gray-300 sm:mt-6 md:mx-0">
+            I build practical web applications by combining clean, interactive
+            user interfaces with reliable backend systems. Passionate about
+            problem-solving, backend development, and turning ideas into
+            real-world solutions through code.
           </p>
 
-          <div className="mt-7 flex flex-wrap gap-3 sm:mt-8 sm:gap-4">
+          <div className="mt-7 flex flex-wrap justify-center gap-3 sm:mt-8 sm:gap-4 md:justify-start">
             <button
               onClick={() => scrollTo("contact")}
               className="inline-flex items-center gap-3 rounded-md bg-violet-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-violet-600 sm:px-6"
@@ -56,7 +69,7 @@ export default function Hero() {
             </button>
           </div>
 
-          <div className="mt-7 flex items-center gap-5 text-white sm:mt-8">
+          <div className="mt-7 flex items-center justify-center gap-5 text-white sm:mt-8 md:justify-start">
             <span className="text-sm">Follow me on</span>
             {socials.map(({ icon: Icon, href, label }) => (
               <a
@@ -97,7 +110,6 @@ export default function Hero() {
           />
         </div>
       </div>
-
     </section>
   );
 }

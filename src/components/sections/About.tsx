@@ -4,8 +4,8 @@ export default function About() {
   return (
     <section id="about" className="scroll-mt-[64px] bg-[#0c0c18] py-14 sm:scroll-mt-[72px] sm:py-20">
       <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 sm:px-5 md:grid-cols-[0.9fr_1.1fr] md:gap-14">
-        {/* Left: image */}
-        <div className="relative mx-auto w-full max-w-sm md:max-w-none">
+        {/* Left: image (mobile e text er niche, md+ e bam dike) */}
+        <div className="relative order-2 mx-auto w-full max-w-sm md:order-1 md:max-w-none">
           {/* dotted accent */}
           <div
             className="absolute -left-3 -top-3 h-24 w-24 opacity-40 sm:-left-5 sm:-top-5"
@@ -28,8 +28,8 @@ export default function About() {
           </div>
         </div>
 
-        {/* Right: content */}
-        <div>
+        {/* Right: content (mobile e prothome, md+ e dan dike) */}
+        <div className="order-1 md:order-2">
           <p className="text-sm font-medium uppercase tracking-widest text-violet-400">
             About Me
           </p>
@@ -37,7 +37,7 @@ export default function About() {
             I Build the Screen and the System Behind It
           </h2>
 
-         <div className="mt-5 space-y-4 text-sm leading-7 text-gray-300 sm:text-base sm:leading-8">
+          <div className="mt-5 space-y-4 text-sm leading-7 text-gray-300 sm:text-base sm:leading-8">
             <p>
               I&apos;m a Computer Science and Engineering student who loves coding,
               solving problems and building useful applications. I&apos;m drawn to
@@ -57,7 +57,6 @@ export default function About() {
               projects.
             </p>
           </div>
-          
         </div>
       </div>
     </section>
